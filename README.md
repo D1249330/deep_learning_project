@@ -8,6 +8,7 @@
 |---|---|---|
 | [`01_cnn_transfer_learning_comparison.ipynb`](notebooks/01_cnn_transfer_learning_comparison.ipynb) | 貓狗照片分類：LeNet 從零訓練 vs. 五種 ImageNet 預訓練模型的遷移學習 | 2025/11/04 |
 | [`02_opencv_convolution_kernels.ipynb`](notebooks/02_opencv_convolution_kernels.ipynb) | 用 `cv2.filter2D` 套用 Sobel、銳化等卷積核，觀察邊緣偵測與卷積核總和的影響 | 2025/10 |
+| [`03_pytorch_vgg16_transfer_learning.ipynb`](notebooks/03_pytorch_vgg16_transfer_learning.ipynb) | 用 PyTorch 重做 VGG16 遷移學習，和 Keras 版比較 | 課程中做到 DataLoader，2026/10 補完訓練 |
 
 ## 結果：遷移學習 vs. 從零訓練
 
@@ -24,6 +25,15 @@
 | EfficientNetB0 | 遷移學習 | 78.7% | 都正確 |
 | LeNet | 從零訓練 | 約 49% | 誤判 1 張 |
 
+### 同一個 VGG16，Keras 與 PyTorch 兩種寫法
+
+| 版本 | 分類層設計 | 可訓練參數 | 驗證準確率 |
+|---|---|---|---|
+| PyTorch（notebook 03） | 保留 VGG16 原本兩層 4096 全連接層，只換掉輸出層 | 8,194 | **95.1%** |
+| Keras（notebook 01） | `include_top=False`，改接 GlobalAveragePooling → Dense(256) → Dense(1) | 131,585 | 78.7% |
+
+差了 16 個百分點，原因不在框架，而在保留了多少預訓練的層：Keras 版新加的 Dense(256) 要從零學，只有 60 張照片不夠；PyTorch 版直接沿用 ImageNet 學好的全連接層，只需要學最後一層。
+
 ## 觀察
 
 - **只有 60 張訓練照片時，從零訓練學不起來。** LeNet 訓練 15 個 epoch，驗證準確率一直停在 50% 上下，和隨機猜差不多，最後把狗也判成貓。
@@ -36,8 +46,10 @@
 1. 在 Google Colab 開啟 notebook。
 2. notebook 01：把貓狗照片放進 Google Drive，結構為 `data/train`、`data/validation`、`data/test`，每個資料夾下分 `cats/`、`dogs/`；再把 `BASE_DATA_DIR` 改成自己的路徑。資料集不包含在本 repo 中。
 3. notebook 02：不需要準備資料，範例圖使用 scikit-image 內建的 `chelsea`。
+4. notebook 03：使用和 notebook 01 相同的資料夾，執行前把執行階段改成 T4 GPU。
 
 ## 備註
 
 - 部分程式碼以 AI 助理協助撰寫，實驗執行、結果比較與分析由我完成。
+- notebook 03 在課程中只完成到建立 DataLoader，訓練、驗證與預測是 2026/10 補上的。
 - 2026/10 整理時，修正了 notebook 02 的兩個問題：OpenCV 讀進的 BGR 影像直接用 matplotlib 顯示造成顏色錯誤，以及 Sobel 輸出用 uint8 導致負方向邊緣被截掉。
